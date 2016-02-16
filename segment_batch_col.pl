@@ -6,13 +6,14 @@ $path=~ s/\/segment_batch_col.pl//;
 #$path1=$path;
 #$path1=~ s/$path1/ $path1/;
 opendir(DIR, ".");
-@files=sort(grep(/TIF/, readdir(DIR)));
+@files=sort(grep(/CH/, readdir(DIR)));
 #print @files;
-open (DDR, "region_and6");
+open (DDR, "171380_140826.tiles");
 @reg=<DDR>;
-$pref="zah";
+$pref="mas";
+$PAN="SP5_PAN_171380_140826";
 print @reg;
-open (FILE, ">segment_col.bat");
+open (FILE, ">171380_140826_col.bat");
 #segmentation and adddatafromlayers
 
 foreach(@files){
@@ -20,13 +21,13 @@ foreach(@files){
         $image_old=$image;
         $image=~ s/\.TIF//;
         $image=~ s/\.tif//;
-        #print FILE "r.in.gdal -e -k --overwrite input=$path/$image_old output=$image\n";
-	#print FILE "v.in.ogr -c -o dsn=$path/$image_old output=$image\n";
+        print FILE "r.in.gdal -e -k --overwrite input=$path/$image_old output=$image\n";
+	print FILE "v.in.ogr -c -o dsn=$path/$image_old output=$image\n";
         #print FILE "r.tileset -g sourceproj='+proj=utm +zone=39 +south +datum=WGS84 +units=m +no_defs' maxcols=1000 maxrows=1000\n";
         print FILE "g.region rast=$image.1 res=10\n";
         #gauss3x3
          print FILE "r.neighbors -c --overwrite input=$image.1 output=$image.1.g size=3 gauss=0.6\n";
-         print FILE "r.neighbors -c --overwrite input=$image.2 output=$image.2.g size=3 gauss=0.6\n";
+        print FILE "r.neighbors -c --overwrite input=$image.2 output=$image.2.g size=3 gauss=0.6\n";
          print FILE "r.neighbors -c --overwrite input=$image.3 output=$image.3.g size=3 gauss=0.6\n";
          print FILE "r.neighbors -c --overwrite input=$image.4 output=$image.4.g size=3 gauss=0.6\n";
          print FILE "i.group group=$image.g input=$image.1.g,$image.2.g,$image.3.g,$image.4.g\n";
@@ -34,7 +35,7 @@ foreach(@files){
         print FILE "r.resample --overwrite input=srtm_sl output=tmp_sl\n";
         print FILE "r.resample --overwrite input=srtm_as output=tmp_as\n";
         print FILE "r.resample --overwrite input=srtm_ti output=tmp_ti\n";
-        print FILE "r.resample --overwrite input=mada_srtm output=tmp_srtm\n";
+        print FILE "r.resample --overwrite input=srtm_mada output=tmp_srtm\n";
         print FILE "i.group group=$image.g input=$image.1.g,$image.2.g,$image.3.g,$image.4.g\n";
 	
         foreach(@reg){
@@ -53,14 +54,15 @@ foreach(@files){
         print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=tmp_sl column_prefix=sl method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
         print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=tmp_ti column_prefix=ti method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
 	print FILE "g.region vect=$pref\_3_10\_$counter res=3\n";
-	#print FILE "r.texture --overwrite input=PAN170_388_16042010 prefix=$pref method=sa,sv,de,var,entr size=5\n";
-	#print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=and6_DE column_prefix=de method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
-	#print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=and6_SA column_prefix=sa method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
-	#print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=and6_Var column_prefix=va method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
-	#print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=and6_SV column_prefix=sv method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
-	#print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=and6_Entr column_prefix=en method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
-        print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=PAN170_388_16042010.lm5_DN60 column_prefix=pc method=sum\n";
-        #print FILE "v.out.ogr -e input=$pref\_3_10\_$counter type=area dsn=$path\n";
+	print FILE "r.texture --overwrite input=$PAN\.g output=$pref method=sa,sv,de,var,entr size=5\n";
+	print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$pref\_DE column_prefix=de method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
+	print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$pref\_SA column_prefix=sa method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
+	print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$pref\_Var column_prefix=va method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
+	print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$pref\_SV column_prefix=sv method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
+	print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$pref\_Entr column_prefix=en method=minimum,maximum,range,average,stddev,variance,coeff_var\n";
+        print FILE "v.rast.stats -c map=$pref\_3_10\_$counter raster=$PAN\.lm5_DN55 column_prefix=pc method=sum\n";
+	print FILE "v.extract --overwrite input=$pref\_3_10\_$counter where='pc_sum >= 0' output=$pref\_$counter\n";
+        print FILE "v.out.ogr -e --overwrite input=$pref\_$counter type=area dsn=$path\n";
         
         }
 

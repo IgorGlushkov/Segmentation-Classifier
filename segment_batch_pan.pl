@@ -22,7 +22,7 @@ foreach(@files){
         $image=~ s/.TIF//;
         
         print FILE "r.in.gdal -e -k --overwrite input=$path1$image_old output=$image\n";
-        print FILE "v.to.rast input=aoi output=MASK use=val \n";
+        #print FILE "v.to.rast input=aoi output=MASK use=val \n";
         print FILE "g.region rast=$image res=2.5\n";
         #gauss3x3
          print FILE "r.neighbors -c --overwrite input=$image output=$image.g size=3 gauss=0.6\n";
@@ -31,10 +31,10 @@ foreach(@files){
          print FILE "r.neighbors -c --overwrite input=$image.g output=$image.min method=minimum size=5\n";
 	 print FILE "r.mapcalc --overwrite expression=\'$image.lm5=if($image.g == $image.min, $image.g, 0)\'\n"; 
 	 print FILE "r.null map=$image.lm5 setnull=0\n"; 
-         print FILE "r.mapcalc --overwrite expression=\'$image.lm5_DN70=if($image.lm5n < 70, 1, 0)\'\n";
-	 print FILE "r.null map=$image.lm5_DN70 null=0\n";
-         #print FILE "r.to.vect -s --overwrite input=$image.lm5_DN50 output=gap_rano393\_lm50 type=point\n";
-         #print FILE "v.out.ogr -e input=gap_rano393\_lm50 type=point dsn=$path\n";
+         print FILE "r.mapcalc --overwrite expression=\'$image.lm5_DN55=if($image.lm5 <= 55, 1, 0)\'\n";
+	 #print FILE "r.null map=$image.lm5_DN80 null=0\n";
+         #print FILE "r.to.vect -s --overwrite input=$image.lm5_DN50 output=gap_171381_140826\_lm50 type=point\n";
+         #print FILE "v.out.ogr -e input=gap_171381_140826\_lm50 type=point dsn=$path\n";
          #print FILE "r.texture --overwrite input=$image prefix=and6 method=sa,sv,de,var,entr size=5\n";
          
         }
