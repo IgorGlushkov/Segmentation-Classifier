@@ -6,11 +6,15 @@ $path=~ s/\/segment_batch_col.pl//;
 #$path1=$path;
 #$path1=~ s/$path1/ $path1/;
 opendir(DIR, ".");
+#sort spectral images (might be another letters) 
 @files=sort(grep(/CH/, readdir(DIR)));
 #print @files;
+#Change name of file containing tiles borders
 open (DDR, "171380_140826.tiles");
 @reg=<DDR>;
+#change prefix
 $pref="mas";
+#change name of panchromatic images
 $PAN="SP5_PAN_171380_140826";
 print @reg;
 open (FILE, ">171380_140826_col.bat");
